@@ -1,0 +1,1675 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌟 Tafeltrainer met Sterre</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 20px;
+        }
+
+        .app-container {
+            background: white;
+            border-radius: 30px;
+            padding: 25px;
+            max-width: 480px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .screen { display: none; }
+        .screen.active { display: block; }
+
+        /* ===== MASCOTTE ===== */
+        .mascot-container { text-align: center; margin: 0 0 15px; }
+
+        .mascot-svg {
+            width: 110px;
+            height: 110px;
+            transition: transform 0.3s;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.15));
+        }
+
+        .mascot-speech {
+            background: #f0f9ff;
+            border: 3px solid #4ECDC4;
+            border-radius: 18px;
+            padding: 10px 15px;
+            font-size: 0.95rem;
+            color: #333;
+            margin-top: 8px;
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .mascot-speech::before {
+            content: '';
+            position: absolute;
+            top: -18px; left: 50%;
+            transform: translateX(-50%);
+            border: 9px solid transparent;
+            border-bottom-color: #4ECDC4;
+        }
+
+        /* ===== KNOPPEN ===== */
+        .btn {
+            padding: 12px 22px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.18s;
+        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }
+        .btn:active { transform: translateY(0); }
+        .btn-primary { background: linear-gradient(135deg, #FF6B6B, #ee5a24); color: white; }
+        .btn-secondary { background: linear-gradient(135deg, #4ECDC4, #26a69a); color: white; }
+        .btn-back { background: #eee; color: #555; padding: 8px 16px; font-size: 0.9rem; }
+
+        /* ===== KOPPEN ===== */
+        h1 { font-size: 1.9rem; text-align: center; color: #333; margin-bottom: 3px; }
+        h2 { font-size: 1.25rem; color: #444; margin-bottom: 10px; }
+        .subtitle { text-align: center; color: #888; margin-bottom: 15px; font-size: 0.95rem; }
+
+        /* ===== TAFELKNOPPEN (home) ===== */
+        .table-selector {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 7px;
+            margin: 10px 0;
+        }
+        .table-btn {
+            padding: 12px 0;
+            border: 3px solid #5B8DEF;
+            border-radius: 12px;
+            background: #5B8DEF;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.18s;
+            color: white;
+        }
+        .table-btn.selected { background: white; border-color: #5B8DEF; color: #333; }
+        .table-btn:hover { opacity: 0.85; }
+
+        .select-all-btn {
+            width: 100%;
+            padding: 10px;
+            border: 3px dashed #5B8DEF;
+            border-radius: 12px;
+            background: white;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            color: #5B8DEF;
+            transition: all 0.18s;
+            margin-bottom: 8px;
+        }
+        .select-all-btn:hover { background: #5B8DEF; color: white; }
+
+        /* ===== MODES (home) ===== */
+        .mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 10px 0; }
+        .mode-card {
+            padding: 18px 12px;
+            border: 3px solid #eee;
+            border-radius: 18px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.18s;
+            background: white;
+        }
+        .mode-card:hover { border-color: #FF6B6B; transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .mode-emoji { font-size: 2.3rem; display: block; margin-bottom: 6px; }
+        .mode-name { font-size: 0.95rem; font-weight: bold; color: #333; }
+
+        /* ===== LEER-SCHERM ===== */
+        .nav-arrows {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 10px 0 12px;
+        }
+        .nav-btn {
+            background: #4ECDC4;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 42px; height: 42px;
+            font-size: 1.3rem;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .nav-btn:hover { background: #26a69a; }
+        .current-table-label { font-size: 1.4rem; font-weight: bold; color: #333; }
+
+        .table-display {
+            background: #f8f9fa;
+            border-radius: 18px;
+            padding: 15px;
+            max-height: 340px;
+            overflow-y: auto;
+        }
+        .table-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 9px 18px;
+            border-radius: 10px;
+            font-size: 1.25rem;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+        .table-row:nth-child(odd)  { background: #e3f2fd; }
+        .table-row:nth-child(even) { background: #e8f5e9; }
+
+        /* ===== VRAAG ===== */
+        .question-display {
+            text-align: center;
+            font-size: 2.8rem;
+            font-weight: bold;
+            margin: 15px 0;
+            padding: 18px;
+            background: linear-gradient(135deg, #f093fb, #f5576c);
+            border-radius: 20px;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+            letter-spacing: 2px;
+        }
+
+        /* ===== INVOER ===== */
+        .answer-input {
+            width: 100%;
+            padding: 14px;
+            font-size: 2rem;
+            text-align: center;
+            border: 4px solid #4ECDC4;
+            border-radius: 14px;
+            outline: none;
+            color: #333;
+            font-weight: bold;
+        }
+        .answer-input:focus { border-color: #FF6B6B; }
+
+        /* ===== MULTIPLE CHOICE ===== */
+        .mc-options { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }
+        .mc-btn {
+            padding: 18px;
+            font-size: 1.7rem;
+            font-weight: bold;
+            border: 4px solid #4ECDC4;
+            border-radius: 18px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.18s;
+            color: #333;
+        }
+        .mc-btn:hover { background: #4ECDC4; color: white; transform: scale(1.05); }
+        .mc-btn.correct { background: #4CAF50; border-color: #4CAF50; color: white; }
+        .mc-btn.wrong   { background: #f44336; border-color: #f44336; color: white; }
+        .mc-btn:disabled { cursor: default; transform: none; }
+
+        /* ===== SCORE + PROGRESS ===== */
+        .score-display {
+            display: flex;
+            justify-content: space-between;
+            background: #f8f9fa;
+            padding: 10px 18px;
+            border-radius: 14px;
+            margin-bottom: 12px;
+        }
+        .score-item { text-align: center; }
+        .score-label { font-size: 0.78rem; color: #777; display: block; }
+        .score-value { font-size: 1.4rem; font-weight: bold; color: #333; }
+
+        .progress-bar { width: 100%; height: 9px; background: #eee; border-radius: 9px; overflow: hidden; margin-bottom: 12px; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, #4ECDC4, #26a69a); border-radius: 9px; transition: width 0.3s; }
+
+        /* ===== TIMER ===== */
+        .timer { font-size: 2.5rem; font-weight: bold; text-align: center; color: #FF6B6B; margin-bottom: 8px; }
+        .timer-bar { width: 100%; height: 13px; background: #eee; border-radius: 9px; overflow: hidden; margin-bottom: 12px; }
+        .timer-fill { height: 100%; background: linear-gradient(90deg, #4CAF50, #FF9800, #f44336); border-radius: 9px; transition: width 1s linear; }
+
+        /* ===== FEEDBACK ===== */
+        .feedback {
+            text-align: center;
+            font-size: 1.35rem;
+            font-weight: bold;
+            padding: 9px;
+            border-radius: 10px;
+            margin: 8px 0;
+            opacity: 0;
+            transition: opacity 0.25s;
+            min-height: 42px;
+        }
+        .feedback.show  { opacity: 1; }
+        .feedback.correct { background: #e8f5e9; color: #388E3C; }
+        .feedback.wrong   { background: #ffebee; color: #c62828; }
+
+        /* ===== RESULTATEN ===== */
+        .results-card {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 20px;
+            padding: 22px;
+            text-align: center;
+            color: white;
+            margin: 12px 0;
+        }
+        .results-score { font-size: 3.5rem; font-weight: bold; }
+        .results-label { font-size: 1.1rem; opacity: 0.92; margin-top: 5px; }
+        .stars-display { font-size: 2.3rem; margin-bottom: 6px; }
+
+        .highscore-badge {
+            background: linear-gradient(135deg, #FFE66D, #f9ca24);
+            color: #333;
+            padding: 9px 20px;
+            border-radius: 50px;
+            font-weight: bold;
+            display: inline-block;
+            margin: 8px 0;
+            font-size: 1rem;
+        }
+
+        /* ===== HIGHSCORE LIJST ===== */
+        .highscore-list {
+            background: #f8f9fa;
+            border-radius: 14px;
+            padding: 14px;
+            margin: 10px 0;
+        }
+        .highscore-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+            font-size: 0.9rem;
+        }
+        .highscore-row:last-child { border-bottom: none; }
+
+        /* ===== FLEX ===== */
+        .flex-center { display: flex; justify-content: center; gap: 10px; }
+        .mt-10 { margin-top: 10px; }
+        .mt-18 { margin-top: 18px; }
+
+        /* ===== ANIMATIES ===== */
+        @keyframes bounce {
+            0%,100% { transform: scale(1) rotate(0deg); }
+            30%      { transform: scale(1.25) rotate(-5deg); }
+            60%      { transform: scale(1.1) rotate(3deg); }
+        }
+        @keyframes shake {
+            0%,100% { transform: translateX(0); }
+            20%      { transform: translateX(-8px) rotate(-3deg); }
+            40%      { transform: translateX(8px) rotate(3deg); }
+            60%      { transform: translateX(-5px); }
+            80%      { transform: translateX(5px); }
+        }
+        @keyframes confetti-fall {
+            0%   { transform: translateY(-80px) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(700deg); opacity: 0; }
+        }
+        .bounce { animation: bounce 0.5s ease; }
+        .shake  { animation: shake 0.45s ease; }
+
+        .confetti-piece {
+            position: fixed;
+            width: 10px; height: 10px;
+            border-radius: 2px;
+            animation: confetti-fall linear forwards;
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 400px) {
+            .app-container { padding: 18px 12px; }
+            h1 { font-size: 1.6rem; }
+            .question-display { font-size: 2.3rem; }
+            .mc-btn { font-size: 1.5rem; padding: 14px; }
+        }
+
+        /* ===== AFDRUKSCHERM ===== */
+        .print-option-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 12px 0; }
+        .print-option-card {
+            padding: 20px 14px;
+            border: 3px solid #eee;
+            border-radius: 18px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.18s;
+            background: white;
+        }
+        .print-option-card:hover { border-color: #FF6B6B; transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+        .print-option-card.active { border-color: #4ECDC4; background: #f0fdfc; }
+        .print-option-card .mode-emoji { font-size: 2.2rem; display: block; margin-bottom: 6px; }
+        .print-option-card .mode-name  { font-size: 0.9rem; font-weight: bold; color: #333; }
+
+        /* Tafelknoppen in afdrukscherm (aparte set) */
+        #printTableSelector { display: grid; grid-template-columns: repeat(5,1fr); gap: 6px; margin: 8px 0 12px; }
+        .print-table-btn {
+            padding: 10px 0;
+            border: 3px solid #ddd;
+            border-radius: 10px;
+            background: white;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.15s;
+            color: #555;
+        }
+        .print-table-btn.selected { background: #FF6B6B; border-color: #ee5a24; color: white; }
+        .print-table-btn:hover { border-color: #FF6B6B; }
+
+        .print-select-all-btn {
+            width: 100%; padding: 9px;
+            border: 3px dashed #FF6B6B;
+            border-radius: 10px; background: white;
+            font-size: 0.95rem; font-weight: bold;
+            cursor: pointer; color: #FF6B6B;
+            transition: all 0.15s; margin-bottom: 7px;
+        }
+        .print-select-all-btn:hover { background: #FF6B6B; color: white; }
+
+        /* Optie-2 type-knoppen */
+        .type-toggle-row { display: flex; gap: 8px; margin: 8px 0; flex-wrap: wrap; }
+        .type-toggle-btn {
+            padding: 7px 14px;
+            border: 3px solid #5B8DEF;
+            border-radius: 50px;
+            background: #5B8DEF;
+            font-size: 0.85rem;
+            font-weight: bold;
+            cursor: pointer;
+            color: white;
+            transition: all 0.15s;
+        }
+        .type-toggle-btn.on { background: white; border-color: #5B8DEF; color: #333; }
+
+        /* Print-preview gebied */
+        #printPreviewArea {
+            margin-top: 15px;
+            border: 2px dashed #ddd;
+            border-radius: 14px;
+            padding: 16px;
+            background: #fafafa;
+            min-height: 80px;
+        }
+
+        /* ===== PRINT-LAYOUT (wat er daadwerkelijk wordt afgedrukt) ===== */
+        #printContent { display: none; }
+
+        /* Tafels-blokken (optie 1) */
+        .print-table-block {
+            border: 2px solid #333;
+            border-radius: 0;
+            margin-bottom: 8px;
+            page-break-inside: avoid;
+        }
+        .print-table-block h3 {
+            background: #333;
+            color: white;
+            padding: 6px 12px;
+            font-size: 1rem;
+            margin: 0;
+        }
+        .print-table-block table { width: 100%; border-collapse: collapse; }
+        .print-table-block td {
+            padding: 5px 12px;
+            font-size: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+        .print-table-block tr:last-child td { border-bottom: none; }
+        .print-table-block tr:nth-child(even) td { background: #f5f5f5; }
+
+        /* Oefenblad */
+        .print-exercise-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 5px;
+        }
+        .print-worksheet-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 0.9rem;
+            gap: 16px;
+        }
+        .print-worksheet-header span {
+            border-bottom: 1px solid #555;
+            flex: 1;
+            padding-bottom: 2px;
+        }
+        /* Twee kolommen: 1-10 links, 11-20 rechts */
+        .print-exercise-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0 28px;
+        }
+        .print-exercise-col { display: flex; flex-direction: column; gap: 0; }
+        .print-exercise-item {
+            font-size: 1.15rem;
+            font-weight: bold;
+            padding: 7px 6px;
+            border-bottom: 1px solid #ddd;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            letter-spacing: 0.5px;
+        }
+        .print-exercise-item:first-child { border-top: 1px solid #ddd; }
+        .print-blank {
+            display: inline-block;
+            min-width: 44px;
+            border-bottom: 2px solid #333;
+            vertical-align: bottom;
+        }
+        .print-col-divider {
+            border-left: 1px solid #ccc;
+        }
+        .print-answer-section {
+            margin-top: 16px;
+            border-top: 2px dashed #999;
+            padding-top: 10px;
+        }
+        .print-answer-section h4 { font-size: 0.95rem; margin-bottom: 6px; }
+        .print-answer-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 3px 8px;
+            font-size: 0.82rem;
+        }
+
+        /* Betere printopmaak */
+        @media print {
+            .print-exercise-item { font-size: 1.25rem; padding: 8px 6px; }
+            .print-exercise-title { font-size: 1.2rem; }
+            .print-blank { min-width: 52px; }
+        }
+
+        /* ===== @MEDIA PRINT ===== */
+        @media print {
+            body { background: white; padding: 0; margin: 0; }
+            .app-container { box-shadow: none; border-radius: 0; padding: 0; max-width: 100%; }
+            .mascot-container,
+            .screen,
+            #printPreviewArea,
+            .no-print { display: none !important; }
+            #printContent { display: block !important; }
+        }
+    </style>
+</head>
+<body>
+<div class="app-container">
+
+    <!-- ===== MASCOTTE (altijd zichtbaar) ===== -->
+    <div class="mascot-container">
+        <svg class="mascot-svg" id="mascotSvg" viewBox="0 0 100 100">
+            <!-- Sterrenvorm -->
+            <polygon id="mascotBody"
+                points="50,6 61,35 93,35 68,55 78,88 50,68 22,88 32,55 7,35 39,35"
+                fill="#FFD700" stroke="#FFA500" stroke-width="2"/>
+            <!-- Gezicht -->
+            <ellipse cx="50" cy="55" rx="20" ry="18" fill="#FFF9C4"/>
+            <!-- Ogen -->
+            <circle cx="43" cy="50" r="5.5" fill="white"/>
+            <circle id="leftPupil"  cx="44" cy="51" r="3" fill="#222"/>
+            <circle cx="44.5" cy="49.5" r="1.2" fill="white"/>
+            <circle cx="57" cy="50" r="5.5" fill="white"/>
+            <circle id="rightPupil" cx="58" cy="51" r="3" fill="#222"/>
+            <circle cx="58.5" cy="49.5" r="1.2" fill="white"/>
+            <!-- Mond (neutraal) -->
+            <path id="mascotMouth"
+                d="M 42 60 Q 50 66 58 60"
+                stroke="#FF6B6B" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            <!-- Wangen -->
+            <circle cx="37" cy="57" r="4.5" fill="#FFB7C5" opacity="0.55"/>
+            <circle cx="63" cy="57" r="4.5" fill="#FFB7C5" opacity="0.55"/>
+        </svg>
+        <div class="mascot-speech" id="mascotSpeech">
+            Hallo! Ik ben Sterre! 🌟 Kies een oefening!
+        </div>
+    </div>
+
+    <!-- ===== SCHERM 1: HOME ===== -->
+    <div class="screen active" id="screen-home">
+        <h1>🌟 Tafeltrainer</h1>
+        <p class="subtitle">Leer de tafels op een leuke manier!</p>
+
+        <h2>Welke tafel(s) wil je oefenen?</h2>
+        <div class="table-selector">
+            <button class="table-btn" onclick="toggleTable(1)">1</button>
+            <button class="table-btn" onclick="toggleTable(2)">2</button>
+            <button class="table-btn" onclick="toggleTable(3)">3</button>
+            <button class="table-btn" onclick="toggleTable(4)">4</button>
+            <button class="table-btn" onclick="toggleTable(5)">5</button>
+            <button class="table-btn" onclick="toggleTable(6)">6</button>
+            <button class="table-btn" onclick="toggleTable(7)">7</button>
+            <button class="table-btn" onclick="toggleTable(8)">8</button>
+            <button class="table-btn" onclick="toggleTable(9)">9</button>
+            <button class="table-btn" onclick="toggleTable(10)">10</button>
+        </div>
+        <button class="select-all-btn" id="selectAllBtn" onclick="toggleSelectAll()">
+            ⭐ Selecteer alle tafels
+        </button>
+
+        <h2 style="margin-top:15px;">Kies een oefening:</h2>
+        <div class="mode-grid">
+            <div class="mode-card" onclick="startMode('learn')">
+                <span class="mode-emoji">📚</span>
+                <span class="mode-name">Tafels Leren</span>
+            </div>
+            <div class="mode-card" onclick="startMode('fillin')">
+                <span class="mode-emoji">✏️</span>
+                <span class="mode-name">Invuloefening</span>
+            </div>
+            <div class="mode-card" onclick="startMode('mc')">
+                <span class="mode-emoji">🎯</span>
+                <span class="mode-name">Keuze­oefening</span>
+            </div>
+            <div class="mode-card" onclick="startMode('time')">
+                <span class="mode-emoji">⏱️</span>
+                <span class="mode-name">Tijdchallenge</span>
+            </div>
+            <div class="mode-card" onclick="goToPrint()" style="grid-column: span 2; border-color:#FFE66D;">
+                <span class="mode-emoji">🖨️</span>
+                <span class="mode-name">Afdrukken oefensommen</span>
+            </div>
+        </div>
+
+        <div id="homeHighscores" style="margin-top:12px;"></div>
+    </div>
+
+    <!-- ===== SCHERM 2: LEREN ===== -->
+    <div class="screen" id="screen-learn">
+        <button class="btn btn-back" onclick="goHome()">← Terug</button>
+        <div class="nav-arrows mt-10">
+            <button class="nav-btn" onclick="prevLearnTable()">◀</button>
+            <span class="current-table-label" id="learnTableLabel">Tafel van 1</span>
+            <button class="nav-btn" onclick="nextLearnTable()">▶</button>
+        </div>
+        <div class="table-display" id="tableDisplay"></div>
+        <div class="flex-center mt-10">
+            <button class="btn btn-primary" onclick="startMode('fillin')">✏️ Nu oefenen!</button>
+        </div>
+    </div>
+
+    <!-- ===== SCHERM 3: INVULOEFENING ===== -->
+    <div class="screen" id="screen-fillin">
+        <button class="btn btn-back" onclick="goHome()">← Terug</button>
+        <div class="score-display mt-10">
+            <div class="score-item">
+                <span class="score-label">Goed</span>
+                <span class="score-value" id="fillinCorrect" style="color:#4CAF50">0</span>
+            </div>
+            <div class="score-item">
+                <span class="score-label">Vraag</span>
+                <span class="score-value" id="fillinProgress">1/10</span>
+            </div>
+            <div class="score-item">
+                <span class="score-label">Fout</span>
+                <span class="score-value" id="fillinWrong" style="color:#f44336">0</span>
+            </div>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="fillinProgressBar" style="width:0%"></div>
+        </div>
+        <div class="question-display" id="fillinQuestion">? × ? = ?</div>
+        <input type="number" class="answer-input" id="fillinInput"
+               placeholder="Jouw antwoord…"
+               onkeydown="handleFillinKey(event)" min="0" max="1000"/>
+        <div class="feedback" id="fillinFeedback"></div>
+        <div class="flex-center mt-10">
+            <button class="btn btn-primary" onclick="checkFillin()">✓ Controleer</button>
+        </div>
+    </div>
+
+    <!-- ===== SCHERM 4: KEUZE­OEFENING ===== -->
+    <div class="screen" id="screen-mc">
+        <button class="btn btn-back" onclick="goHome()">← Terug</button>
+        <div class="score-display mt-10">
+            <div class="score-item">
+                <span class="score-label">Goed</span>
+                <span class="score-value" id="mcCorrect" style="color:#4CAF50">0</span>
+            </div>
+            <div class="score-item">
+                <span class="score-label">Vraag</span>
+                <span class="score-value" id="mcProgress">1/10</span>
+            </div>
+            <div class="score-item">
+                <span class="score-label">Fout</span>
+                <span class="score-value" id="mcWrong" style="color:#f44336">0</span>
+            </div>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="mcProgressBar" style="width:0%"></div>
+        </div>
+        <div class="question-display" id="mcQuestion">? × ? = ?</div>
+        <div class="mc-options" id="mcOptions"></div>
+        <div class="feedback" id="mcFeedback"></div>
+    </div>
+
+    <!-- ===== SCHERM 5: TIJDCHALLENGE ===== -->
+    <div class="screen" id="screen-time">
+        <button class="btn btn-back" onclick="stopTimeChallenge(); goHome()">← Stoppen</button>
+        <div class="timer" id="timerDisplay">60</div>
+        <div class="timer-bar">
+            <div class="timer-fill" id="timerFill" style="width:100%"></div>
+        </div>
+        <div class="score-display">
+            <div class="score-item">
+                <span class="score-label">Punten</span>
+                <span class="score-value" id="timeScore">0</span>
+            </div>
+            <div class="score-item">
+                <span class="score-label">Goed</span>
+                <span class="score-value" id="timeCorrect" style="color:#4CAF50">0</span>
+            </div>
+            <div class="score-item">
+                <span class="score-label">Fout</span>
+                <span class="score-value" id="timeWrong" style="color:#f44336">0</span>
+            </div>
+        </div>
+        <div class="question-display" id="timeQuestion">? × ? = ?</div>
+        <div class="mc-options" id="timeOptions"></div>
+        <div class="feedback" id="timeFeedback"></div>
+    </div>
+
+    <!-- ===== SCHERM 6: RESULTATEN ===== -->
+    <div class="screen" id="screen-results">
+        <div class="results-card">
+            <div class="stars-display" id="resultStars">⭐⭐⭐</div>
+            <div class="results-score" id="resultScore">0/10</div>
+            <div class="results-label" id="resultLabel">Geweldig gedaan!</div>
+        </div>
+        <div id="newHighscoreBadge" style="text-align:center;display:none;">
+            <div class="highscore-badge">🏆 Nieuwe highscore!</div>
+        </div>
+        <div id="resultHighscoreInfo" style="text-align:center;margin:8px 0;color:#777;font-size:0.9rem;"></div>
+        <div id="retryWrongBtn" style="text-align:center;display:none;margin-top:12px;">
+            <button class="btn" style="background:linear-gradient(135deg,#f7971e,#ffd200);color:#333;width:100%;font-size:1rem;"
+                    onclick="retryWrongQuestions()">
+                ⚡ Foute sommen opnieuw oefenen
+            </button>
+            <p id="retryWrongCount" style="font-size:0.85rem;color:#888;margin-top:4px;"></p>
+        </div>
+        <div class="flex-center mt-18">
+            <button class="btn btn-primary"   onclick="restartSameMode()">🔄 Opnieuw</button>
+            <button class="btn btn-secondary" onclick="goHome()">🏠 Menu</button>
+        </div>
+    </div>
+
+    <!-- ===== SCHERM 7: AFDRUKKEN ===== -->
+    <div class="screen" id="screen-print">
+        <button class="btn btn-back no-print" onclick="goHome()">← Terug</button>
+        <h1 style="margin-top:10px;">🖨️ Afdrukken</h1>
+        <p class="subtitle">Kies wat je wilt afdrukken</p>
+
+        <div class="print-option-grid">
+            <div class="print-option-card" id="printOpt1Card" onclick="setPrintOption(1)">
+                <span class="mode-emoji">📋</span>
+                <span class="mode-name">Volledige tafels</span>
+            </div>
+            <div class="print-option-card" id="printOpt2Card" onclick="setPrintOption(2)">
+                <span class="mode-emoji">1️⃣</span>
+                <span class="mode-name">Oefenblad 1<br><small style="font-weight:normal;color:#888;">antwoord ontbreekt</small></span>
+            </div>
+            <div class="print-option-card" id="printOpt3Card" onclick="setPrintOption(3)">
+                <span class="mode-emoji">2️⃣</span>
+                <span class="mode-name">Oefenblad 2<br><small style="font-weight:normal;color:#888;">tafelgetal ontbreekt</small></span>
+            </div>
+            <div class="print-option-card" id="printOpt4Card" onclick="setPrintOption(4)">
+                <span class="mode-emoji">3️⃣</span>
+                <span class="mode-name">Oefenblad 3<br><small style="font-weight:normal;color:#888;">gemengd</small></span>
+            </div>
+        </div>
+
+        <!-- Geselecteerde tafels (overgenomen van startscherm) -->
+        <div id="printSelectedInfo" style="background:#f0fdfc;border:2px solid #4ECDC4;border-radius:14px;padding:12px 16px;margin-bottom:14px;">
+            <strong>📋 Geselecteerde tafels:</strong>
+            <span id="printSelectedLabel" style="color:#26a69a;font-weight:bold;margin-left:6px;">—</span>
+            <br><small style="color:#888;">Pas de selectie aan op het startscherm.</small>
+        </div>
+
+        <!-- Aantal sommen (alleen voor oefenbladen) -->
+        <div id="printCountSettings" style="display:none;margin-bottom:14px;">
+            <h2 style="margin-bottom:8px;">Hoeveel sommen?</h2>
+            <div class="type-toggle-row">
+                <button class="type-toggle-btn" id="countBtn10" onclick="setPrintCount(10)">10</button>
+                <button class="type-toggle-btn on" id="countBtn20" onclick="setPrintCount(20)">20</button>
+                <button class="type-toggle-btn" id="countBtnCustom" onclick="setPrintCount('custom')">Zelf kiezen</button>
+            </div>
+            <div id="customCountWrap" style="display:none;margin-top:8px;align-items:center;gap:8px;">
+                <input type="number" id="customCountInput" min="1" max="100" value="20"
+                    style="width:80px;padding:6px 10px;border:2px solid #5B8DEF;border-radius:10px;font-size:1rem;text-align:center;"
+                    oninput="onCustomCountChange()">
+                <span style="font-size:0.9rem;color:#777;">sommen (max. 100)</span>
+            </div>
+        </div>
+
+        <!-- Extra instellingen oefenblad 3 (gemengd) -->
+        <div id="printOpt2Settings" style="display:none;">
+            <h2>Oefenblad 3 – Welke vraagtypen?</h2>
+            <p style="font-size:0.85rem;color:#777;margin-bottom:6px;">
+                Kies welke vormen je wilt opnemen (gelijkmatig verdeeld over 20 sommen):
+            </p>
+            <div class="type-toggle-row">
+                <button class="type-toggle-btn" id="typeBtn0" onclick="toggleType(0)">
+                    □ × tafel = antwoord
+                </button>
+                <button class="type-toggle-btn" id="typeBtn1" onclick="toggleType(1)">
+                    getal × □ = antwoord
+                </button>
+                <button class="type-toggle-btn" id="typeBtn2" onclick="toggleType(2)">
+                    getal × tafel = □
+                </button>
+            </div>
+            <div style="margin-top:8px;">
+                <label style="font-size:0.9rem;display:flex;align-items:center;gap:8px;cursor:pointer;">
+                    <input type="checkbox" id="showAnswersCheck" style="width:18px;height:18px;">
+                    Antwoordenblad meenemen bij afdrukken
+                </label>
+            </div>
+        </div>
+
+        <!-- Preview -->
+        <div id="printPreviewArea">
+            <p style="color:#aaa;text-align:center;font-size:0.9rem;">
+                Selecteer een optie en tafels om een voorbeeld te zien…
+            </p>
+        </div>
+
+        <div class="flex-center" style="margin-top:14px;flex-wrap:wrap;gap:10px;">
+            <button class="btn btn-secondary no-print" onclick="generatePrintPreview()">🔄 Vernieuwen</button>
+            <button class="btn btn-primary no-print" onclick="doPrint()">🖨️ Afdrukken</button>
+        </div>
+    </div>
+
+    <!-- ===== PRINT-CONTENT (alleen zichtbaar bij afdrukken) ===== -->
+    <div id="printContent"></div>
+
+</div><!-- /app-container -->
+
+<script>
+// ================================================
+//  STATE
+// ================================================
+let selectedTables  = [];
+let currentMode     = '';
+let currentQuestion = null;
+let questionNum     = 0;
+let totalQuestions  = 10;
+let correctCount    = 0;
+let wrongCount      = 0;
+let timeInterval    = null;
+let timeLeft        = 60;
+let learnTableIndex = 0;   // 0-based index into selectedTables array
+let mcAnswered      = false;
+let timeAnswered    = false;
+let wrongQuestions  = [];  // vragen die fout beantwoord zijn
+let retryQueue      = null; // als ingesteld: gebruik deze vragen ipv willekeurig
+
+// ================================================
+//  HIGHSCORES  (localStorage)
+// ================================================
+function getHighscores() {
+    try { return JSON.parse(localStorage.getItem('tafeltrainer_hs') || '{}'); }
+    catch(e) { return {}; }
+}
+
+function hsKey(mode) {
+    return mode + '__' + [...selectedTables].sort((a,b)=>a-b).join('-');
+}
+
+/** Returns true if it's a new highscore */
+function saveHighscore(mode, score, total) {
+    const hs  = getHighscores();
+    const key = hsKey(mode);
+    let   val = mode === 'time' ? score : Math.round((score/total)*100);
+    if (val > (hs[key] || 0)) {
+        hs[key] = val;
+        localStorage.setItem('tafeltrainer_hs', JSON.stringify(hs));
+        return true;
+    }
+    return false;
+}
+
+function getPrevHighscore(mode) {
+    const hs = getHighscores();
+    return hs[hsKey(mode)] || null;
+}
+
+// ================================================
+//  TAFEL-SELECTIE
+// ================================================
+function toggleTable(n) {
+    const i = selectedTables.indexOf(n);
+    if (i > -1) selectedTables.splice(i, 1);
+    else         selectedTables.push(n);
+    updateTableButtons();
+    updateSelectAllBtn();
+}
+
+function toggleSelectAll() {
+    selectedTables = selectedTables.length === 10 ? [] : [1,2,3,4,5,6,7,8,9,10];
+    updateTableButtons();
+    updateSelectAllBtn();
+}
+
+function updateTableButtons() {
+    document.querySelectorAll('.table-btn').forEach((btn, i) => {
+        btn.classList.toggle('selected', selectedTables.includes(i + 1));
+    });
+}
+
+function updateSelectAllBtn() {
+    const btn = document.getElementById('selectAllBtn');
+    const all = selectedTables.length === 10;
+    btn.style.background  = all ? '#5B8DEF' : 'white';
+    btn.style.color       = all ? 'white'   : '#5B8DEF';
+    btn.style.borderStyle = all ? 'solid'   : 'dashed';
+}
+
+// ================================================
+//  NAVIGATIE
+// ================================================
+function showScreen(name) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('screen-' + name).classList.add('active');
+}
+
+function goHome() {
+    stopTimeChallenge();
+    showScreen('home');
+    setMascot('neutral', 'Hallo! Ik ben Sterre! 🌟 Kies een oefening!');
+    renderHomeHighscores();
+}
+
+function restartSameMode() { startMode(currentMode); }
+
+/** Start een nieuwe ronde met alleen de fout beantwoorde sommen */
+function retryWrongQuestions() {
+    const mode = currentMode; // fillin of mc
+    retryQueue     = [...wrongQuestions].sort(() => Math.random() - 0.5);
+    wrongQuestions = [];
+    questionNum    = 0;
+    correctCount   = 0;
+    wrongCount     = 0;
+    totalQuestions = retryQueue.length;
+
+    if (mode === 'fillin') {
+        showScreen('fillin');
+        nextFillinQuestion();
+        setMascot('thinking', 'Oefenen maar! Je kunt deze keer! ✏️');
+    } else {
+        showScreen('mc');
+        nextMCQuestion();
+        setMascot('thinking', 'Nog een kans! Kies het juiste antwoord! 🎯');
+    }
+}
+
+// ================================================
+//  HOME – HIGHSCORES
+// ================================================
+function renderHomeHighscores() {
+    const hs   = getHighscores();
+    const keys = Object.keys(hs);
+    if (!keys.length) { document.getElementById('homeHighscores').innerHTML = ''; return; }
+
+    const labels = { fillin: '✏️ Invuloefening', mc: '🎯 Keuze', time: '⏱️ Tijdchallenge' };
+    const sorted = keys.sort((a,b) => hs[b] - hs[a]).slice(0, 6);
+
+    let html = '<div class="highscore-list"><strong>🏆 Highscores:</strong>';
+    sorted.forEach(k => {
+        const [mode, tbl] = k.split('__');
+        const label  = labels[mode] || mode;
+        const tables = tbl === '1-2-3-4-5-6-7-8-9-10' ? 'alle tafels' : 'tafel ' + tbl.replace(/-/g, ', ');
+        const suffix = mode === 'time' ? ' punten' : '%';
+        html += `<div class="highscore-row">
+                   <span>${label} (${tables})</span>
+                   <span><strong>${hs[k]}${suffix}</strong></span>
+                 </div>`;
+    });
+    html += '</div>';
+    document.getElementById('homeHighscores').innerHTML = html;
+}
+
+// ================================================
+//  MASCOTTE
+// ================================================
+function setMascot(state, msg) {
+    const svg    = document.getElementById('mascotSvg');
+    const mouth  = document.getElementById('mascotMouth');
+    const body   = document.getElementById('mascotBody');
+    const speech = document.getElementById('mascotSpeech');
+
+    svg.classList.remove('bounce', 'shake');
+    void svg.offsetWidth; // force reflow
+
+    switch (state) {
+        case 'happy':
+            mouth.setAttribute('d', 'M 40 59 Q 50 68 60 59');
+            body.setAttribute('fill', '#FFD700');
+            svg.classList.add('bounce');
+            break;
+        case 'excited':
+            mouth.setAttribute('d', 'M 37 58 Q 50 71 63 58');
+            body.setAttribute('fill', '#FF6B6B');
+            svg.classList.add('bounce');
+            break;
+        case 'sad':
+            mouth.setAttribute('d', 'M 41 65 Q 50 56 59 65');
+            body.setAttribute('fill', '#90CAF9');
+            svg.classList.add('shake');
+            break;
+        case 'thinking':
+            mouth.setAttribute('d', 'M 41 62 Q 50 62 59 60');
+            body.setAttribute('fill', '#CE93D8');
+            break;
+        default:
+            mouth.setAttribute('d', 'M 42 60 Q 50 66 58 60');
+            body.setAttribute('fill', '#FFD700');
+    }
+    speech.textContent = msg;
+}
+
+// ================================================
+//  VRAAG GENEREREN
+//  Regel: de TAFEL is altijd het TWEEDE getal
+//  Som = multiplier × tableNum
+// ================================================
+function makeQuestion() {
+    const tables = selectedTables.length ? selectedTables : [1,2,3,4,5,6,7,8,9,10];
+    const tableNum   = tables[Math.floor(Math.random() * tables.length)];
+    const multiplier = Math.floor(Math.random() * 10) + 1;  // 1..10
+    return {
+        tableNum,
+        multiplier,
+        question : `${multiplier} × ${tableNum}`,
+        answer   : multiplier * tableNum
+    };
+}
+
+/** Haalt de volgende vraag op: uit retryQueue of willekeurig gegenereerd */
+function getNextQuestion() {
+    if (retryQueue && retryQueue.length > 0) {
+        return retryQueue.shift();
+    }
+    return makeQuestion();
+}
+
+function makeMCOptions(correct) {
+    const opts = new Set([correct]);
+    const nearby = [-12,-9,-6,-3,3,6,9,12,-2,2,-1,1];
+    let tries = 0;
+    while (opts.size < 4 && tries < 40) {
+        tries++;
+        const v = correct + nearby[Math.floor(Math.random() * nearby.length)];
+        if (v > 0 && v !== correct) opts.add(v);
+    }
+    while (opts.size < 4) {
+        const v = Math.floor(Math.random() * 100) + 1;
+        if (v !== correct) opts.add(v);
+    }
+    return [...opts].sort(() => Math.random() - 0.5);
+}
+
+// ================================================
+//  MODUS STARTEN
+// ================================================
+function startMode(mode) {
+    if (!selectedTables.length) {
+        setMascot('thinking', 'Kies eerst één of meer tafels! 😊');
+        return;
+    }
+
+    currentMode     = mode;
+    questionNum     = 0;
+    correctCount    = 0;
+    wrongCount      = 0;
+    wrongQuestions  = [];
+    retryQueue      = null;
+    totalQuestions  = 10;
+
+    if (mode === 'learn') {
+        learnTableIndex = 0;
+        showScreen('learn');
+        renderLearnTable();
+        setMascot('happy', `Laten we de tafel van ${sortedTables()[0]} leren! 📚`);
+    } else if (mode === 'fillin') {
+        showScreen('fillin');
+        nextFillinQuestion();
+        setMascot('thinking', 'Typ jouw antwoord en druk op Enter! ✏️');
+    } else if (mode === 'mc') {
+        showScreen('mc');
+        nextMCQuestion();
+        setMascot('thinking', 'Kies het goede antwoord! 🎯');
+    } else if (mode === 'time') {
+        showScreen('time');
+        startTimeChallenge();
+        setMascot('excited', 'Snel! Zoveel mogelijk goed in 60 seconden! ⏱️');
+    }
+}
+
+function sortedTables() {
+    return [...selectedTables].sort((a,b) => a-b);
+}
+
+// ================================================
+//  MODUS: LEREN
+// ================================================
+function renderLearnTable() {
+    const t    = sortedTables()[learnTableIndex];
+    document.getElementById('learnTableLabel').textContent = `Tafel van ${t}`;
+    let html = '';
+    for (let i = 1; i <= 10; i++) {
+        // Som: i × t (tafel = tweede getal)
+        html += `<div class="table-row">
+                   <span>${i} × ${t}</span>
+                   <span>=</span>
+                   <span><strong>${i * t}</strong></span>
+                 </div>`;
+    }
+    document.getElementById('tableDisplay').innerHTML = html;
+}
+
+function prevLearnTable() {
+    const tabs = sortedTables();
+    learnTableIndex = (learnTableIndex - 1 + tabs.length) % tabs.length;
+    renderLearnTable();
+    setMascot('happy', `Nu de tafel van ${tabs[learnTableIndex]}! 📚`);
+}
+function nextLearnTable() {
+    const tabs = sortedTables();
+    learnTableIndex = (learnTableIndex + 1) % tabs.length;
+    renderLearnTable();
+    setMascot('happy', `Nu de tafel van ${tabs[learnTableIndex]}! 📚`);
+}
+
+// ================================================
+//  MODUS: INVULOEFENING
+// ================================================
+function nextFillinQuestion() {
+    if (questionNum >= totalQuestions) { showResults('fillin', correctCount, totalQuestions); return; }
+
+    currentQuestion = getNextQuestion();
+    document.getElementById('fillinQuestion').textContent  = `${currentQuestion.question} = ?`;
+    document.getElementById('fillinInput').value           = '';
+    document.getElementById('fillinProgress').textContent  = `${questionNum + 1}/${totalQuestions}`;
+    document.getElementById('fillinProgressBar').style.width = `${(questionNum / totalQuestions) * 100}%`;
+    document.getElementById('fillinCorrect').textContent   = correctCount;
+    document.getElementById('fillinWrong').textContent     = wrongCount;
+
+    const fb = document.getElementById('fillinFeedback');
+    fb.className = 'feedback';
+
+    setTimeout(() => document.getElementById('fillinInput').focus(), 50);
+}
+
+function handleFillinKey(e) { if (e.key === 'Enter') checkFillin(); }
+
+function checkFillin() {
+    const val = parseInt(document.getElementById('fillinInput').value);
+    if (isNaN(val)) { setMascot('thinking', 'Vul een getal in! 🤔'); return; }
+
+    const fb = document.getElementById('fillinFeedback');
+    if (val === currentQuestion.answer) {
+        correctCount++;
+        fb.textContent = '✓ Goed zo! 🌟';
+        fb.className   = 'feedback show correct';
+        setMascot('happy', rndCorrect());
+        spawnConfetti(6);
+    } else {
+        wrongCount++;
+        fb.textContent = `✗ Bijna! Het antwoord was ${currentQuestion.answer}`;
+        fb.className   = 'feedback show wrong';
+        setMascot('sad', rndWrong());
+        wrongQuestions.push({ ...currentQuestion });
+    }
+
+    questionNum++;
+    setTimeout(nextFillinQuestion, 2200);
+}
+
+// ================================================
+//  MODUS: KEUZE­OEFENING
+// ================================================
+function nextMCQuestion() {
+    if (questionNum >= totalQuestions) { showResults('mc', correctCount, totalQuestions); return; }
+
+    mcAnswered      = false;
+    currentQuestion = getNextQuestion();
+    const options   = makeMCOptions(currentQuestion.answer);
+
+    document.getElementById('mcQuestion').textContent   = `${currentQuestion.question} = ?`;
+    document.getElementById('mcProgress').textContent  = `${questionNum + 1}/${totalQuestions}`;
+    document.getElementById('mcProgressBar').style.width = `${(questionNum / totalQuestions) * 100}%`;
+    document.getElementById('mcCorrect').textContent   = correctCount;
+    document.getElementById('mcWrong').textContent     = wrongCount;
+
+    const div = document.getElementById('mcOptions');
+    div.innerHTML = '';
+    options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'mc-btn';
+        btn.textContent = opt;
+        btn.onclick = () => checkMC(btn, opt);
+        div.appendChild(btn);
+    });
+
+    document.getElementById('mcFeedback').className = 'feedback';
+}
+
+function checkMC(clicked, selected) {
+    if (mcAnswered) return;
+    mcAnswered = true;
+
+    const fb = document.getElementById('mcFeedback');
+    document.querySelectorAll('#mcOptions .mc-btn').forEach(b => {
+        b.disabled = true;
+        if (+b.textContent === currentQuestion.answer) b.classList.add('correct');
+    });
+
+    if (selected === currentQuestion.answer) {
+        correctCount++;
+        clicked.classList.add('correct');
+        fb.textContent = '✓ Goed zo! 🌟';
+        fb.className   = 'feedback show correct';
+        setMascot('happy', rndCorrect());
+        spawnConfetti(6);
+    } else {
+        wrongCount++;
+        clicked.classList.add('wrong');
+        fb.textContent = `✗ Bijna! Het antwoord was ${currentQuestion.answer}`;
+        fb.className   = 'feedback show wrong';
+        setMascot('sad', rndWrong());
+        wrongQuestions.push({ ...currentQuestion });
+    }
+
+    questionNum++;
+    setTimeout(nextMCQuestion, 2200);
+}
+
+// ================================================
+//  MODUS: TIJDCHALLENGE
+// ================================================
+function startTimeChallenge() {
+    stopTimeChallenge();
+    timeLeft     = 60;
+    correctCount = 0;
+    wrongCount   = 0;
+    document.getElementById('timeScore').textContent   = '0';
+    document.getElementById('timeCorrect').textContent = '0';
+    document.getElementById('timeWrong').textContent   = '0';
+    document.getElementById('timerDisplay').style.color = '#FF6B6B';
+
+    nextTimeQuestion();
+
+    timeInterval = setInterval(() => {
+        timeLeft--;
+        document.getElementById('timerDisplay').textContent     = timeLeft;
+        document.getElementById('timerFill').style.width        = `${(timeLeft / 60) * 100}%`;
+        if (timeLeft <= 10) document.getElementById('timerDisplay').style.color = '#c62828';
+        if (timeLeft <= 0) { stopTimeChallenge(); showResults('time', correctCount, correctCount + wrongCount, true); }
+    }, 1000);
+}
+
+function stopTimeChallenge() {
+    if (timeInterval) { clearInterval(timeInterval); timeInterval = null; }
+}
+
+function nextTimeQuestion() {
+    timeAnswered    = false;
+    currentQuestion = makeQuestion();
+    const options   = makeMCOptions(currentQuestion.answer);
+
+    document.getElementById('timeQuestion').textContent = `${currentQuestion.question} = ?`;
+
+    const div = document.getElementById('timeOptions');
+    div.innerHTML = '';
+    options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'mc-btn';
+        btn.textContent = opt;
+        btn.onclick = () => checkTimeQ(btn, opt);
+        div.appendChild(btn);
+    });
+    document.getElementById('timeFeedback').className = 'feedback';
+}
+
+function checkTimeQ(clicked, selected) {
+    if (timeAnswered) return;
+    timeAnswered = true;
+
+    const fb = document.getElementById('timeFeedback');
+    document.querySelectorAll('#timeOptions .mc-btn').forEach(b => {
+        b.disabled = true;
+        if (+b.textContent === currentQuestion.answer) b.classList.add('correct');
+    });
+
+    if (selected === currentQuestion.answer) {
+        correctCount++;
+        clicked.classList.add('correct');
+        fb.textContent = '✓ Super!';
+        fb.className   = 'feedback show correct';
+        setMascot('happy', '⚡ Razendsnel!');
+        spawnConfetti(3);
+        document.getElementById('timeCorrect').textContent = correctCount;
+        document.getElementById('timeScore').textContent   = correctCount * 10;
+    } else {
+        wrongCount++;
+        clicked.classList.add('wrong');
+        fb.textContent = `✗ ${currentQuestion.answer}`;
+        fb.className   = 'feedback show wrong';
+        setMascot('sad', '😅 Snel door!');
+        document.getElementById('timeWrong').textContent = wrongCount;
+    }
+    setTimeout(nextTimeQuestion, 800);
+}
+
+// ================================================
+//  RESULTATEN
+// ================================================
+function showResults(mode, correct, total, isTime) {
+    stopTimeChallenge();
+    showScreen('results');
+
+    const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
+
+    // Score tekst
+    document.getElementById('resultScore').textContent =
+        isTime ? `${correct * 10} punten` : `${correct} / ${total}`;
+
+    // Sterren + boodschap
+    let stars, label, mascotState, mascotMsg;
+    if (pct >= 90) {
+        stars = '⭐⭐⭐'; label = 'Waanzinnig! Je bent een echte tafelheld! 🏆';
+        mascotState = 'excited'; mascotMsg = 'GEWELDIG! Jij bent een superkampioen! 🏆🌟';
+        spawnConfetti(25);
+    } else if (pct >= 70) {
+        stars = '⭐⭐'; label = 'Heel goed! Blijf zo doorgaan! 👏';
+        mascotState = 'happy'; mascotMsg = 'Heel goed! Nog een beetje oefenen en je bent perfect! 😊';
+        spawnConfetti(12);
+    } else if (pct >= 40) {
+        stars = '⭐'; label = 'Goed geprobeerd! Oefen nog wat! 💪';
+        mascotState = 'thinking'; mascotMsg = 'Je bent goed op weg! Oefenen maakt de meester! 💪';
+    } else {
+        stars = '✨'; label = 'Niet opgeven! Probeer het nog eens! 🌱';
+        mascotState = 'sad'; mascotMsg = 'Niet erg! Probeer het nog eens, je kunt het! 🌱';
+    }
+
+    document.getElementById('resultStars').textContent = stars;
+    document.getElementById('resultLabel').textContent  = label;
+    setMascot(mascotState, mascotMsg);
+
+    // Herhaalknop – alleen bij fillin en mc, en alleen als er foute antwoorden waren
+    const retryDiv   = document.getElementById('retryWrongBtn');
+    const retryCount = document.getElementById('retryWrongCount');
+    if (!isTime && wrongQuestions.length > 0 && (mode === 'fillin' || mode === 'mc')) {
+        retryDiv.style.display = 'block';
+        retryCount.textContent = `Je had ${wrongQuestions.length} fout${wrongQuestions.length > 1 ? 'e' : ''} som${wrongQuestions.length > 1 ? 'men' : ''} – oefen die nu opnieuw!`;
+    } else {
+        retryDiv.style.display = 'none';
+    }
+
+    // Highscore
+    const prev  = getPrevHighscore(mode);
+    const isNew = saveHighscore(mode, isTime ? correct : correct, isTime ? 0 : total);
+
+    document.getElementById('newHighscoreBadge').style.display = isNew ? 'block' : 'none';
+    if (!isNew && prev !== null) {
+        const suffix = mode === 'time' ? ` punten` : `%`;
+        document.getElementById('resultHighscoreInfo').textContent =
+            `Jouw record: ${prev}${suffix}`;
+    } else {
+        document.getElementById('resultHighscoreInfo').textContent = '';
+    }
+}
+
+// ================================================
+//  BERICHTEN MASCOTTE
+// ================================================
+const CORRECT_MSGS = [
+    'Super goed! 🌟', 'Briljant! ✨', 'Ja! Precies! 🎉',
+    'Geweldig! Je bent een ster! ⭐', 'TOP! Zo doe je dat! 👑',
+    'Perfect! 🎯', 'Wauw, wat slim! 🧠', 'Fantastisch! 🚀'
+];
+const WRONG_MSGS = [
+    'Bijna! Probeer het opnieuw! 💪', 'Niet erg, oefening baart kunst! 📚',
+    'Volgende keer beter! 🌈', 'Goed geprobeerd! 👍',
+    'Je leert ervan! Goed bezig! 🌱', 'Niet opgeven! Je kunt het! 🤗'
+];
+function rndCorrect() { return CORRECT_MSGS[Math.floor(Math.random() * CORRECT_MSGS.length)]; }
+function rndWrong()   { return WRONG_MSGS  [Math.floor(Math.random() * WRONG_MSGS.length)];   }
+
+// ================================================
+//  CONFETTI
+// ================================================
+function spawnConfetti(count) {
+    const COLORS = ['#FF6B6B','#4ECDC4','#FFE66D','#95E1D3','#F38181','#A8E6CF','#ff9ff3','#54a0ff'];
+    for (let i = 0; i < count; i++) {
+        setTimeout(() => {
+            const el        = document.createElement('div');
+            el.className    = 'confetti-piece';
+            el.style.left   = (Math.random() * 100) + 'vw';
+            el.style.top    = '-20px';
+            el.style.width  = (Math.random() * 10 + 6) + 'px';
+            el.style.height = el.style.width;
+            el.style.background    = COLORS[Math.floor(Math.random() * COLORS.length)];
+            el.style.borderRadius  = Math.random() > 0.5 ? '50%' : '2px';
+            el.style.animationDuration = (Math.random() * 2 + 1.2) + 's';
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 3500);
+        }, i * 80);
+    }
+}
+
+// ================================================
+//  AFDRUKKEN – STATE
+// ================================================
+let printOption = 0;   // 1 = volledige tafels, 2-4 = oefenbladen
+let printCount  = 20;  // aantal sommen voor oefenbladen
+// Welke vraagtypen actief zijn voor oefenblad 3:
+// type 0: ___ × tafel = antwoord
+// type 1: getal × ___ = antwoord
+// type 2: getal × tafel = ___
+let printTypes = [false, false, false];
+
+// ================================================
+//  AFDRUKKEN – NAVIGATIE
+// ================================================
+function goToPrint() {
+    showScreen('print');
+
+    // Toon welke tafels geselecteerd zijn op het startscherm
+    const tabs = sortedTables();
+    const label = document.getElementById('printSelectedLabel');
+    if (tabs.length === 0) {
+        label.textContent = 'Geen tafels geselecteerd – ga terug en kies tafels.';
+        label.style.color = '#f44336';
+    } else if (tabs.length === 10) {
+        label.textContent = 'Alle tafels (1 t/m 10)';
+        label.style.color = '#26a69a';
+    } else {
+        label.textContent = 'Tafel ' + tabs.join(', ');
+        label.style.color = '#26a69a';
+    }
+
+    setMascot('happy', 'Kies wat je wilt afdrukken! 🖨️');
+
+    // Reset count-knoppen naar 20
+    printCount = 20;
+    ['10','20','Custom'].forEach(id => {
+        const btn = document.getElementById('countBtn' + id);
+        if (btn) btn.classList.remove('on');
+    });
+    const btn20 = document.getElementById('countBtn20');
+    if (btn20) btn20.classList.add('on');
+    const cw = document.getElementById('customCountWrap');
+    if (cw) cw.style.display = 'none';
+
+    // Reset vraagtype-knoppen (OB3) naar niet geselecteerd
+    printTypes = [false, false, false];
+    [0, 1, 2].forEach(i => {
+        const b = document.getElementById('typeBtn' + i);
+        if (b) b.classList.remove('on');
+    });
+
+    setPrintOption(1);   // standaard optie 1
+}
+
+function setPrintOption(n) {
+    printOption = n;
+    [1,2,3,4].forEach(i =>
+        document.getElementById('printOpt' + i + 'Card').classList.toggle('active', n === i)
+    );
+    // Aantal sommen tonen voor oefenbladen (niet bij volledige tafels)
+    document.getElementById('printCountSettings').style.display = n >= 2 ? 'block' : 'none';
+    // Gemengde instellingen alleen tonen bij oefenblad 3
+    document.getElementById('printOpt2Settings').style.display = n === 4 ? 'block' : 'none';
+    generatePrintPreview();
+}
+
+// ================================================
+//  AFDRUKKEN – AANTAL SOMMEN
+// ================================================
+function setPrintCount(val) {
+    const customWrap = document.getElementById('customCountWrap');
+    ['10','20','Custom'].forEach(id => {
+        const btn = document.getElementById('countBtn' + id);
+        if (btn) btn.classList.remove('on');
+    });
+    if (val === 'custom') {
+        customWrap.style.display = 'flex';
+        document.getElementById('countBtnCustom').classList.add('on');
+        const raw = parseInt(document.getElementById('customCountInput').value) || 20;
+        printCount = Math.max(1, Math.min(100, raw));
+    } else {
+        customWrap.style.display = 'none';
+        printCount = val;
+        document.getElementById('countBtn' + val).classList.add('on');
+    }
+    generatePrintPreview();
+}
+
+function onCustomCountChange() {
+    const input = document.getElementById('customCountInput');
+    let val = parseInt(input.value);
+    if (isNaN(val) || val < 1)  val = 1;
+    if (val > 100) val = 100;
+    printCount = val;
+    generatePrintPreview();
+}
+
+// ================================================
+//  AFDRUKKEN – VRAAGTYPEN (optie 2)
+// ================================================
+function toggleType(idx) {
+    printTypes[idx] = !printTypes[idx];
+    document.getElementById('typeBtn' + idx).classList.toggle('on', printTypes[idx]);
+    generatePrintPreview();
+}
+
+// ================================================
+//  AFDRUKKEN – PREVIEW GENEREREN
+// ================================================
+function generatePrintPreview() {
+    const area = document.getElementById('printPreviewArea');
+    const tabs  = sortedTables();
+    if (!printOption || !tabs.length) {
+        area.innerHTML = '<p style="color:#aaa;text-align:center;font-size:0.9rem;">Selecteer eerst tafels op het startscherm en kies dan een optie.</p>';
+        return;
+    }
+    if (printOption === 1) {
+        area.innerHTML = buildFullTablesHTML(tabs, false);
+    } else {
+        // printOption 2 = OB1 (type 2), 3 = OB2 (type 1), 4 = OB3 (gemengd)
+        const forcedType = printOption === 2 ? 2 : printOption === 3 ? 1 : null;
+        area.innerHTML = buildExerciseHTML(tabs, false, forcedType);
+    }
+}
+
+// ================================================
+//  AFDRUKKEN – HTML BOUWEN
+// ================================================
+
+/** Optie 1: volledige tafels als HTML-blokken */
+function buildFullTablesHTML(tabs, forPrint) {
+    const colStyle = forPrint
+        ? `display:grid;grid-template-columns:repeat(${Math.min(tabs.length,3)},1fr);gap:12px;`
+        : `display:grid;grid-template-columns:repeat(${Math.min(tabs.length,2)},1fr);gap:10px;`;
+
+    let html = `<div style="${colStyle}">`;
+    tabs.forEach(t => {
+        html += `<div class="print-table-block">
+            <h3>Tafel van ${t}</h3>
+            <table>`;
+        for (let i = 1; i <= 10; i++) {
+            html += `<tr><td>${i} &times; ${t} = ${i * t}</td></tr>`;
+        }
+        html += `</table></div>`;
+    });
+    html += `</div>`;
+    return html;
+}
+
+/** Oefenblad met sommen in 2 duidelijke kolommen */
+function buildExerciseHTML(tabs, forPrint, forcedType = null) {
+    const count   = printCount || 20;
+    const sommen  = generateExerciseSums(tabs, count, forcedType);
+    const withAns = forPrint && document.getElementById('showAnswersCheck').checked;
+
+    const tabelNamen = tabs.length === 10 ? 'alle tafels' : 'tafel ' + tabs.join(', ');
+
+    let html = `<div class="print-exercise-title">Oefenblad – ${tabelNamen}</div>`;
+
+    // Naam / datum header (alleen bij afdrukken)
+    if (forPrint) {
+        html += `<div class="print-worksheet-header">
+            <span>Naam:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+            <span>Datum:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+            <span>Score:&nbsp;&nbsp;&nbsp;&nbsp;/ ${count}</span>
+        </div>`;
+    }
+
+    // Twee kolommen: eerste helft links, tweede helft rechts
+    const half = Math.ceil(count / 2);
+    const col1 = sommen.slice(0, half);
+    const col2  = sommen.slice(half);
+
+    html += `<div class="print-exercise-columns">`;
+
+    // Linkerkolom
+    html += `<div class="print-exercise-col">`;
+    col1.forEach((s, i) => {
+        html += `<div class="print-exercise-item">${i + 1}.&nbsp;&nbsp;${renderSum(s)}</div>`;
+    });
+    html += `</div>`;
+
+    // Rechterkolom
+    html += `<div class="print-exercise-col print-col-divider">`;
+    col2.forEach((s, i) => {
+        html += `<div class="print-exercise-item">${i + half + 1}.&nbsp;&nbsp;${renderSum(s)}</div>`;
+    });
+    html += `</div>`;
+
+    html += `</div>`; // /columns
+
+    // Antwoordenblad
+    if (withAns || !forPrint) {
+        html += `<div class="print-answer-section">`;
+        if (forPrint) {
+            html += `<h4>Antwoorden</h4><div class="print-answer-grid">`;
+            sommen.forEach((s, i) => { html += `<span>${i + 1}. <strong>${getAnswer(s)}</strong></span>`; });
+            html += `</div>`;
+        } else {
+            html += `<details style="cursor:pointer;"><summary style="font-weight:bold;margin-bottom:8px;">🔑 Antwoorden tonen</summary><div class="print-answer-grid">`;
+            sommen.forEach((s, i) => { html += `<span>${i + 1}. <strong>${getAnswer(s)}</strong></span>`; });
+            html += `</div></details>`;
+        }
+        html += `</div>`;
+    }
+
+    return html;
+}
+
+/** Geeft het ontbrekende getal terug (het antwoord dat ingevuld moet worden) */
+function getAnswer(s) {
+    // type 0: ___ × tafel = antwoord  → ontbrekende = multiplier
+    // type 1: getal × ___ = antwoord  → ontbrekende = tableNum
+    // type 2: getal × tafel = ___     → ontbrekende = answer
+    if (s.type === 0) return s.multiplier;
+    if (s.type === 1) return s.tableNum;
+    return s.answer;
+}
+
+/** Renders één som afhankelijk van het type */
+function renderSum(s) {
+    const blank = `<span class="print-blank">&nbsp;</span>`;
+    // type 0: ___ × tafel = antwoord  → eerste getal ontbreekt
+    // type 1: getal × ___ = antwoord  → tafelgetal ontbreekt
+    // type 2: getal × tafel = ___     → antwoord ontbreekt
+    switch (s.type) {
+        case 0: return `${blank} &times; ${s.tableNum} = ${s.answer}`;
+        case 1: return `${s.multiplier} &times; ${blank} = ${s.answer}`;
+        case 2: return `${s.multiplier} &times; ${s.tableNum} = ${blank}`;
+    }
+}
+
+/** Genereert sommen; forcedType = 0|1|2 voor vaste vorm, null voor gemengd */
+function generateExerciseSums(tabs, count, forcedType = null) {
+    const activeTypes = forcedType !== null
+        ? [forcedType]
+        : (printTypes.some(Boolean)
+            ? printTypes.map((on, i) => on ? i : -1).filter(i => i >= 0)
+            : [0, 1, 2]);   // fallback: alle typen als niets geselecteerd
+
+    const sommen = [];
+    // Verdeel count zo gelijkmatig mogelijk over actieve typen
+    const perType = Math.floor(count / activeTypes.length);
+    const rest    = count % activeTypes.length;
+    const typeCounts = activeTypes.map((t, i) => ({ type: t, n: perType + (i < rest ? 1 : 0) }));
+
+    // Shuffle volgorde van typen
+    typeCounts.forEach(tc => {
+        for (let i = 0; i < tc.n; i++) {
+            const tableNum   = tabs[Math.floor(Math.random() * tabs.length)];
+            const multiplier = Math.floor(Math.random() * 10) + 1;
+            sommen.push({
+                type       : tc.type,
+                tableNum,
+                multiplier,
+                answer     : multiplier * tableNum
+            });
+        }
+    });
+
+    // Shuffle de sommen door elkaar
+    return sommen.sort(() => Math.random() - 0.5);
+}
+
+// ================================================
+//  AFDRUKKEN – UITVOEREN
+// ================================================
+function doPrint() {
+    const tabs = sortedTables();
+    if (!printOption || !tabs.length) {
+        setMascot('thinking', 'Kies eerst tafels op het startscherm! 🤔');
+        return;
+    }
+
+    const printDiv = document.getElementById('printContent');
+    if (printOption === 1) {
+        printDiv.innerHTML = `
+            <h2 style="margin-bottom:12px;">🌟 Tafeltrainer – Tafels overzicht</h2>
+            ${buildFullTablesHTML(tabs, true)}`;
+    } else {
+        const titles  = { 2: 'Oefenblad 1 – antwoord invullen', 3: 'Oefenblad 2 – tafelgetal invullen', 4: 'Oefenblad 3 – gemengd' };
+        const forced  = printOption === 2 ? 2 : printOption === 3 ? 1 : null;
+        printDiv.innerHTML = `
+            <h2 style="margin-bottom:8px;">🌟 Tafeltrainer – ${titles[printOption]}</h2>
+            ${buildExerciseHTML(tabs, true, forced)}`;
+    }
+
+    window.print();
+}
+
+// ================================================
+//  START
+// ================================================
+// Standaard geen tafels geselecteerd – gebruiker klikt zelf
+renderHomeHighscores();
+</script>
+</body>
+</html>
